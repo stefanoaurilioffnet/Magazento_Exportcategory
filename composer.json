@@ -1,0 +1,10 @@
+{
+    "name": "magazento/exportcategory",
+    "license": "OSL-3.0",
+    "type": "magento-module",
+    "description": "Import Export Category",
+    "require": {
+        "magento-hackathon/magento-composer-installer": "*"
+    },
+    "minimum-stability": "dev"
+}

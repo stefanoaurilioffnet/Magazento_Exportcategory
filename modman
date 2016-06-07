@@ -1,0 +1,6 @@
+app/code/local/Magazento/CategoryExport/		                            app/code/local/Magazento/CategoryExport/
+app/code/local/Magazento/CoreExport/			                            app/code/local/Magazento/CoreExport/
+app/design/adminhtml/default/default/layout/magazento_coreexport.xml        app/design/adminhtml/default/default/layout/magazento_coreexport.xml
+app/design/adminhtml/default/default/template/magazento_coreexport          app/design/adminhtml/default/default/template/magazento_coreexport
+app/etc/modules/Magazento_CategoryExport.xml                                app/etc/modules/Magazento_CategoryExport.xml
+app/etc/modules/Magazento_CoreExport.xml                                    app/etc/modules/Magazento_CoreExport.xml

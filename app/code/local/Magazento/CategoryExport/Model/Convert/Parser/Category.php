@@ -103,15 +103,15 @@ class Magazento_CategoryExport_Model_Convert_Parser_Category extends Mage_Eav_Mo
                 $store = $this->getStoreById(0);
             }
             $row['created_in'] = $store->getCode();
-            $productCollection = Mage::getResourceModel('catalog/product_collection')
-                ->addCategoryFilter($category);
 
-            // Disabled, because does not work with flat data
-//            $categoryProducts = array();
-//            foreach ($productCollection as $_product) {
-//                $categoryProducts[] = $_product->getId();
-//            }
-//            $row['category_products'] = implode(',',$categoryProducts);
+            /* // Disabled, because does not work with flat data
+            $productCollection = Mage::getResourceModel('catalog/product_collection')->addCategoryFilter($category);
+            $categoryProducts = array();
+            foreach ($productCollection as $_product) {
+                $categoryProducts[] = $_product->getId();
+            }
+
+            $row['category_products'] = implode(',',$categoryProducts); */
 
             $batchExport = $this->getBatchExportModel()
                 ->setId(null)

@@ -47,10 +47,10 @@ class Magazento_CategoryExport_Model_Convert_Parser_Category extends Mage_Eav_Mo
 
         $entityIds = $this->getData();
         $collection = Mage::getResourceModel('catalog/category_collection')
-                ->addAttributeToSelect('*')
-                ->addAttributeToFilter('entity_id', array('in' => $entityIds))
-                ->addAttributeToFilter('level', array('neq' => 0))
-                ->addAttributeToSort('level', 'asc');
+            ->addAttributeToSelect('*')
+            ->addAttributeToFilter('entity_id', array('in' => $entityIds))
+            ->addAttributeToFilter('level', array('neq' => 0))
+            ->addAttributeToSort('level', 'asc');
         foreach ($collection as $i => $category) {
 
 
@@ -114,11 +114,11 @@ class Magazento_CategoryExport_Model_Convert_Parser_Category extends Mage_Eav_Mo
 //            $row['category_products'] = implode(',',$categoryProducts);
 
             $batchExport = $this->getBatchExportModel()
-                    ->setId(null)
-                    ->setBatchId($this->getBatchModel()->getId())
-                    ->setBatchData($row)
-                    ->setStatus(1)
-                    ->save();
+                ->setId(null)
+                ->setBatchId($this->getBatchModel()->getId())
+                ->setBatchData($row)
+                ->setStatus(1)
+                ->save();
         }
         return $this;
     }
@@ -154,18 +154,19 @@ class Magazento_CategoryExport_Model_Convert_Parser_Category extends Mage_Eav_Mo
         $attributes = $model->getAttributes(true);
         $internal = array(
             'store_id',
-            'entity_id',
             'website_id',
-            'group_id',
-            'created_in',
+            'group_id'
         );
+
+        $externalAttributes = array();
         foreach ($attributes as $attr) {
             $code = $attr->getAttributeCode();
             if (!(in_array($code, $internal) || $attr->getFrontendInput() == 'hidden')) {
-                $attributes[$code] = $code;
+                $externalAttributes[$code] = $code;
             }
         }
-        return $attributes;
+
+        return $externalAttributes;
     }
 
     public function getWebsiteById($websiteId) {

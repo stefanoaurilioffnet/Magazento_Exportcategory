@@ -44,36 +44,55 @@ class Magazento_CategoryExport_Model_Convert_Adapter_Category extends Mage_Eav_M
     public function saveRow($importData)
     {
         $category = $this->getCategoryModel();
-        $category->setId(null);
-
-        if (!Mage::getModel('categoryexport/category')->isUnique($importData['url_path'])) {
-            $message = Mage::helper('categoryexport')->__('Skipping import row, category with path "%s" exists.', $importData['url_path']);
-            Mage::throwException($message);
-        }
-        if (isset($importData['website'])) {
-            $website = $this->getWebsiteByCode($importData['website']);
-            $category->setWebsiteId($website->getId());
-        }
-        if (empty($importData['created_in']) || !$this->getStoreByCode($importData['created_in'])) {
-            $category->setStoreId(0);
-        } else {
-            $category->setStoreId($this->getStoreByCode($importData['created_in'])->getId());
+        $categoryId = isset($importData['entity_id']) ? $importData['entity_id'] : '';
+        if(!empty($categoryId) && !$category->checkId($categoryId)){
+            $categoryId = null;
         }
 
-        if (!isset($importData['path'])) {
-            $model = Mage::getModel('categoryexport/category');
-            $value = $model->getPathByUrlPath($importData['url_path']);
+        $category->setId($categoryId);
 
-            $category->setData('path', $value);
+        if(!$categoryId){
+            // we want to create a new category
+            if (!Mage::getModel('categoryexport/category')->isUnique($importData['url_path'])) {
+                $message = Mage::helper('categoryexport')->__('Skipping import row, category with path "%s" exists.', $importData['url_path']);
+                Mage::throwException($message);
+            }
+
+            if (isset($importData['website'])) {
+                $website = $this->getWebsiteByCode($importData['website']);
+                $category->setWebsiteId($website->getId());
+            }
+
+            if (empty($importData['created_in']) || !$this->getStoreByCode($importData['created_in'])) {
+                $category->setStoreId(0);
+            } else {
+                $category->setStoreId($this->getStoreByCode($importData['created_in'])->getId());
+            }
+
+            if (!isset($importData['path'])) {
+                $model = Mage::getModel('categoryexport/category');
+                $value = $model->getPathByUrlPath($importData['url_path']);
+                $category->setData('path', $value);
+            }
+
+            if(isset($importData['parent_id'])){
+                $model = Mage::getModel('categoryexport/category');
+                $value = $model->getParentIdByPath($importData['url_path']);
+                $importData['parent_id'] = $value;
+            }
+
+        }else{
+            // we want to update an existing category
+            $category->setStoreId($this->getStoreId())->load($categoryId);
+            if(isset($importData['parent_id'])){
+                $value = $importData['parent_id'];
+                if(!$category->checkId($value)){
+                    unset($importData['parent_id']);
+                }
+            }
         }
 
         foreach ($importData as $field => $value) {
-            if ($field === 'parent_id') {
-                $model = Mage::getModel('categoryexport/category');
-                $value = $model->getParentIdByPath($importData['url_path']);
-                //  continue;
-            }
-
             $attribute = $this->getAttribute($field);
             if ($attribute) {
 
@@ -110,21 +129,19 @@ class Magazento_CategoryExport_Model_Convert_Adapter_Category extends Mage_Eav_M
                 Mage::helper('coreexport')->log($field);
 
             } elseif ($field =='category_products') {
-            // Disabled, because does not work with flat data
+                /* Disabled, because does not work with flat data
+                $products = explode(',',$value);
+                $productPositions = array();
+                Mage::helper('coreexport')->log($products);
+                foreach ($products as $productId) {
+                    $productPositions[$productId] = 0;
+                }
 
-//                $products = explode(',',$value);
-//                $productPositions = array();
-//                Mage::helper('coreexport')->log($products);
-//                foreach ($products as $productId) {
-//                    $productPositions[$productId] = 0;
-//                }
-//                $category->setPostedProducts($productPositions);
-
+                $category->setPostedProducts($productPositions); */
             } else {
                 // skip row import
                 continue;
             }
-
         }
 
         $category->setImportMode(true);
@@ -165,8 +182,13 @@ class Magazento_CategoryExport_Model_Convert_Adapter_Category extends Mage_Eav_M
     public function getAttribute($code)
     {
         if (!isset($this->_attributes[$code])) {
-            $this->_attributes[$code] = $this->getCategoryModel()->getResource()->getAttribute($code);
+            if($attribute = $this->getCategoryModel()->getResource()->getAttribute($code)){
+                $attribute->setStoreId($this->getStoreId());
+            }
+
+            $this->_attributes[$code] = $attribute;
         }
+
         return $this->_attributes[$code];
     }
 

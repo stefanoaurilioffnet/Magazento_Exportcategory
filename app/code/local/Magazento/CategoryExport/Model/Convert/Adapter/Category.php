@@ -51,6 +51,9 @@ class Magazento_CategoryExport_Model_Convert_Adapter_Category extends Mage_Eav_M
 
         $category->setId($categoryId);
 
+        $importStore = $this->getImportStore($importData);
+        $category->setStoreId($importStore->getId());
+
         if(!$categoryId){
             // we want to create a new category
             if (!Mage::getModel('categoryexport/category')->isUnique($importData['url_path'])) {
@@ -83,7 +86,7 @@ class Magazento_CategoryExport_Model_Convert_Adapter_Category extends Mage_Eav_M
 
         }else{
             // we want to update an existing category
-            $category->setStoreId($this->getStoreId())->load($categoryId);
+            $category->load($categoryId);
             if(isset($importData['parent_id'])){
                 $value = $importData['parent_id'];
                 if(!$category->checkId($value)){
@@ -190,6 +193,48 @@ class Magazento_CategoryExport_Model_Convert_Adapter_Category extends Mage_Eav_M
         }
 
         return $this->_attributes[$code];
+    }
+
+    public function getImportStore($importData){
+        $importStore = isset($importData['store']) ? $importData['store'] : "";
+        if (empty($importStore)) {
+            if (!is_null($this->getBatchParams('store'))) {
+                $store = $this->getStoreById($this->getBatchParams('store'));
+            } else {
+                $message = Mage::helper('catalog')->__('Skipping import row, required field "%s" is not defined.', 'store');
+                Mage::throwException($message);
+            }
+        } else {
+            $store = $this->getStoreByCode($importData['store']);
+        }
+
+        return $store;
+    }
+
+    /**
+     * Retrieve store object by code
+     *
+     * @param string $store
+     * @return Mage_Core_Model_Store
+     */
+    public function getStoreById($id)
+    {
+        /**
+         * In single store mode all data should be saved as default
+         */
+        if (Mage::app()->isSingleStoreMode()) {
+            return Mage::app()->getStore(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID);
+        }
+
+        $store = null;
+        try {
+            $store = Mage::app()->getStore($id);
+        }
+        catch (Exception $e) {
+            return false;
+        }
+
+        return $store;
     }
 
 }
